@@ -24,10 +24,59 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
-Cypress.Commands.add('clickElement', (element)=>{
+
+const base_url = 'https://api.maildrop.cc/graphql'
+let data
+
+
+before(() => {
+    cy.fixture('selectors').then(ele => {
+        data = ele
+    })
+})
+Cypress.Commands.add('clickElement', (element) => {
     cy.get(element).should('exist').and('be.visible').click()
 })
 
-Cypress.Commands.add('insertText', (textFld, text)=>{
+Cypress.Commands.add('insertText', (textFld, text) => {
     cy.get(textFld).should('exist').and('be.visible').type(text)
+})
+
+Cypress.Commands.add('insertOTP', (username) => {
+
+    cy.wait(20000)
+    cy.request({
+        method: 'POST',
+        url: base_url,
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: {
+            query: `query Example { inbox(mailbox:"${username}") { id headerfrom subject date} }`,
+            variables: {}
+        }
+    }).then(resp => {
+        const inboxID = resp.body.data.inbox[0].id
+
+        return cy.request({
+            method: 'POST',
+            url: base_url,
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: {
+                query: `query Example {
+  message(mailbox:"${username}", id:"${inboxID}") {html}
+}`,
+                variables: {}
+            }
+        }).then(resp => {
+            const messageBody = resp.body.data.message.html
+            const parse = new DOMParser()
+            const doc = parse.parseFromString(messageBody, 'text/html')
+            const code = doc.querySelector('tbody>tr:nth-of-type(3) span').textContent
+            cy.insertText(data.isMojo.otpFld, code)
+            cy.clickElement(data.isMojo.verifyBtn)
+        })
+    })
 })
