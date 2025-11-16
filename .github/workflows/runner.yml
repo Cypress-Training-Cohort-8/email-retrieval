@@ -1,17 +1,14 @@
+---
+jobs:
+  execution:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Node Env
+        uses: actions/checkout@v5
+      - name: Execute Cypress
+        uses: cypress-io/github-action@v6
 name: Regression Test
-
-on:
+'on':
   push:
     branches:
       - main
-
-jobs:
-    execution:
-        runs-on:ubuntu-latest
-
-        steps:
-        - name: Set up Node Env
-          uses: actions/checkout@v5
-
-        - name: Execute Cypress
-          uses: cypress-io/github-action@v6
