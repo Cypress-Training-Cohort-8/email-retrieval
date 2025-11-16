@@ -83,7 +83,7 @@ Cypress.Commands.add('insertOTP', (username) => {
 
 Cypress.Commands.add('verifyEmailLink', (username) => {
 
-    cy.wait(5000)
+    cy.wait(20000)
     cy.request({
         method: 'POST',
         url: base_url,
