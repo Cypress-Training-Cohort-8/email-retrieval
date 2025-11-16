@@ -16,6 +16,7 @@ jobs:
           CYPRESS_MAILOSAUR_API_KEY: ${{secrets.CYPRESS_MAILOSAUR_API_KEY}}
 
       - name: Upload Test Results
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: Results
