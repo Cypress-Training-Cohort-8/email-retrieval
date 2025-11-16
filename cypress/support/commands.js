@@ -80,3 +80,41 @@ Cypress.Commands.add('insertOTP', (username) => {
         })
     })
 })
+
+Cypress.Commands.add('verifyEmailLink', (username) => {
+
+    cy.wait(20000)
+    cy.request({
+        method: 'POST',
+        url: base_url,
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: {
+            query: `query Example { inbox(mailbox:"${username}") { id headerfrom subject date} }`,
+            variables: {}
+        }
+    }).then(resp => {
+        const inboxID = resp.body.data.inbox[0].id
+
+        return cy.request({
+            method: 'POST',
+            url: base_url,
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: {
+                query: `query Example {
+  message(mailbox:"${username}", id:"${inboxID}") {html}
+}`,
+                variables: {}
+            }
+        }).then(resp => {
+            const messageBody = resp.body.data.message.html
+            const parse = new DOMParser()
+            const doc = parse.parseFromString(messageBody, 'text/html')
+            const code = doc.querySelector('a[href="https://qabrains.com"]').href
+            cy.visit(code)
+        })
+    })
+})
